@@ -13,3 +13,15 @@ db.serialize(() => {
     }
   );
 });
+
+db.serialize(() => {
+  db.run("DROP TABLE IF EXISTS Series", (err) => {
+    console.log(err);
+  });
+  db.run(
+    "CREATE TABLE Series(id INTEGER PRIMARY KEY NOT NULL, name TEXT NOT NULL, description TEXT NOT NULL)",
+    (err) => {
+      console.log(err);
+    }
+  );
+});
