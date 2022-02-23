@@ -66,8 +66,73 @@ artistRouter.post("/", (req, res, next) => {
         db.get(
           `SELECT * FROM Artist ORDER BY Artist.id DESC LIMIT 1`,
           (error, artist) => {
-            console.log(artist);
-            res.status(201).json({ artist: artist });
+            if (error) {
+              next(error);
+            } else {
+              res.status(201).json({ artist: artist });
+            }
+          }
+        );
+      }
+    }
+  );
+});
+
+artistRouter.put("/:artistId", (req, res, next) => {
+  const { name, dateOfBirth, biography } = req.body.artist;
+  if (!name || !dateOfBirth || !biography) {
+    return res.sendStatus(400);
+  }
+  const isCurrentlyEmployed = req.body.artist.isCurrentlyEmployed === 0 ? 0 : 1;
+  const values = {
+    $name: name,
+    $dateOfBirth: dateOfBirth,
+    $biography: biography,
+    $isCurrentlyEmployed: isCurrentlyEmployed,
+    $artistId: req.params.artistId,
+  };
+
+  db.run(
+    `UPDATE Artist SET name = $name, date_of_birth = $dateOfBirth, biography = $biography, is_currently_employed = $isCurrentlyEmployed WHERE Artist.id = $artistId`,
+    values,
+    (error) => {
+      if (error) {
+        next(error);
+        return;
+      } else {
+        db.get(
+          `SELECT * FROM Artist WHERE Artist.id = ${req.params.artistId}`,
+          (error, artist) => {
+            if (error) {
+              next(error);
+              return;
+            } else {
+              res.status(200).send({ artist });
+            }
+          }
+        );
+      }
+    }
+  );
+});
+
+artistRouter.delete("/:artistId", (req, res, next) => {
+  db.run(
+    `UPDATE Artist set is_currently_employed = 0 WHERE Artist.id = ${req.params.artistId}`,
+    (error) => {
+      if (error) {
+        next(error);
+        return;
+      } else {
+        db.get(
+          `SELECT * FROM Artist WHERE Artist.id = ${req.params.artistId}`,
+          (error, artist) => {
+            if (error) {
+              next(error);
+              return;
+            } else {
+              res.status(200).send({ artist });
+            }
           }
         );
       }
